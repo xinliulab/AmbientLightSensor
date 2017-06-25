@@ -11,7 +11,12 @@
 #include <string.h>
 
 #import <Foundation/Foundation.h>
+//Access essential data types, collections, and operating-system services to define the base layer of functionality for your app.
+//https://developer.apple.com/documentation/foundation
+
 #import <IOKit/IOKitLib.h>
+//https://developer.apple.com/documentation/iokit/iokitlib.h
+
 
 io_connect_t dataPort;
 
@@ -23,17 +28,24 @@ enum {
 };
 
 int main (int argc, const char * argv[]) {
-    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init]; 
+    //https://developer.apple.com/documentation/foundation/nsautoreleasepool
     
     kern_return_t kr = KERN_FAILURE;
     io_service_t serviceObject; 
+    // IOService The base class for most I/O Kit families, devices, and drivers.
     
     // Look up a registered IOService object whose class is AppleLMUController  
+    //https://developer.apple.com/documentation/iokit/1514535-ioservicegetmatchingservice
     serviceObject = IOServiceGetMatchingService(kIOMasterPortDefault,
                                                 IOServiceMatching("AppleLMUController"));
+   
+
+
     if (serviceObject) {
         NSLog(@"Got device AppleLMUController");
-        kr = IOServiceOpen(serviceObject, mach_task_self(), 0, &dataPort);          
+        kr = IOServiceOpen(serviceObject, mach_task_self(), 0, &dataPort);
+        //https://developer.apple.com/documentation/iokit/1514515-ioserviceopen          
     }   
     IOObjectRelease(serviceObject);
     
@@ -93,7 +105,7 @@ int main (int argc, const char * argv[]) {
               break;
             }
             
-            sleep(0.1); //lame way to slow down the output
+            sleep(0); //lame way to slow down the output
             
         }
     }
