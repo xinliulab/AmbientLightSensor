@@ -98,14 +98,14 @@ int main (int argc, const char * argv[]) {
             // lower values over time.
             // Somewhere between 2,500,000 and 3,000,000 the KB light turns off. It's hard to capture it since the light ramps off. 
             
-            printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b%llu %llu        ", MAX(values[0],values[1]), out_brightness); 
+            printf("\n %llu %llu        ", MAX(values[0],values[1]), out_brightness); 
             
             // if we pass in `now` as an arg, only report 1 value
             if(argc > 1 && strcmp("now", argv[1]) == 0) {
               break;
             }
             
-            sleep(0); //lame way to slow down the output
+            // sleep(1); //lame way to slow down the output
             
         }
     }
