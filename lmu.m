@@ -105,7 +105,7 @@ int main (int argc, const char * argv[]) {
               break;
             }
             
-            // sleep(1); //lame way to slow down the output
+            sleep(1); //lame way to slow down the output
             
         }
     }
