@@ -1,0 +1,109 @@
+//
+//  main.m
+//  ALS
+//
+//  Created by pengzhuojun on 7/2/17.
+//  Copyright © 2017 pengzhuojun. All rights reserved.
+//
+
+#import <Cocoa/Cocoa.h>
+
+#include <stdio.h>
+#include <string.h>
+
+#import <Foundation/Foundation.h>
+//Access essential data types, collections, and operating-system services to define the base layer of functionality for your app.
+//https://developer.apple.com/documentation/foundation
+
+#import <IOKit/IOKitLib.h>
+//https://developer.apple.com/documentation/iokit/iokitlib.h
+
+
+io_connect_t dataPort;
+
+enum {
+    kGetSensorReadingID   = 0,  // getSensorReading(int *, int *)
+    kGetLEDBrightnessID   = 1,  // getLEDBrightness(int, int *)
+    kSetLEDBrightnessID   = 2,  // setLEDBrightness(int, int, int *)
+    kSetLEDFadeID         = 3,  // setLEDFade(int, int, int, int *)
+};
+
+int main (int argc, const char * argv[]) {
+    @autoreleasepool{
+    
+        kern_return_t kr = KERN_FAILURE;
+        io_service_t serviceObject;
+    // IOService The base class for most I/O Kit families, devices, and drivers.
+    // Look up a registered IOService object whose class is AppleLMUController
+        
+        serviceObject = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("AppleLMUController"));
+    
+        if (serviceObject) {
+            NSLog(@"Got device AppleLMUController");
+            kr = IOServiceOpen(serviceObject, mach_task_self(), 0, &dataPort);
+            }
+        IOObjectRelease(serviceObject);
+    
+        if (kr == KERN_SUCCESS) {
+            NSLog(@"IOServiceOpen succeeded");
+        
+            while (1) {
+            
+            //Get the ALS reading
+                uint32_t scalarOutputCount = 2;
+                uint64_t values[scalarOutputCount];
+            
+                kr = IOConnectCallMethod(dataPort,
+                                         kGetSensorReadingID,
+                                         nil,
+                                         0,
+                                         nil,
+                                         0,
+                                         values,
+                                         &scalarOutputCount,
+                                         nil,
+                                         0);
+            
+                // Get the LED reading
+                uint32_t scalarInputCountKB  = 1;
+                uint32_t scalarOutputCountKB = 1;
+                uint64_t in_unknown = 0, out_brightness;
+            
+                kr = IOConnectCallMethod(dataPort,
+                                         kGetLEDBrightnessID,
+                                         &in_unknown,
+                                         scalarInputCountKB,
+                                         nil,
+                                         0,
+                                         &out_brightness,
+                                         &scalarOutputCountKB,
+                                         nil,
+                                         0);
+            
+                // The code at http://google-mac-qtz-patches.googlecode.com/svn-history/r5/trunk/AmbientLightSensor
+                // suggests that values be calibrated to 0x00FFFFFF for the MacbookPro5 family and 1600 otherwise
+                // This seems too low.
+                // Output as high as 67,092,480 (0x03ffc000) has been observed on my Macbook 5,2
+                // So I'll report the raw value instead and remove the calibration code.
+                // Also since for the MBP5,2 the two values agree
+                // (there is only one ALS sensor) I'll report only the maximum value.
+            
+                // The LED value however does seem to go 0-4091 though the values do not seem fixed.
+                // They vary with light level and time such that maxing it out results in slightly
+                // lower values over time.
+                // Somewhere between 2,500,000 and 3,000,000 the KB light turns off. It's hard to capture it since the light ramps off.
+            
+                printf("\n %llu %llu        ", MAX(values[0],values[1]), out_brightness);
+            
+                // if we pass in `now` as an arg, only report 1 value
+                if(argc > 1 && strcmp("now", argv[1]) == 0) {
+                    break;
+                    }
+            
+                sleep(1); //lame way to slow down the output
+            
+                }
+            }
+        }
+    return 0;
+}
