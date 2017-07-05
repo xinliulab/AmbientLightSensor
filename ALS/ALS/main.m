@@ -21,38 +21,61 @@
 
 io_connect_t dataPort;
 
-enum {
+enum
+{
     kGetSensorReadingID   = 0,  // getSensorReading(int *, int *)
     kGetLEDBrightnessID   = 1,  // getLEDBrightness(int, int *)
     kSetLEDBrightnessID   = 2,  // setLEDBrightness(int, int, int *)
     kSetLEDFadeID         = 3,  // setLEDFade(int, int, int, int *)
 };
 
-int main (int argc, const char * argv[]) {
-    @autoreleasepool{
+int main (int argc, const char * argv[])
+{
+    // argc means argument count, i.e. the number of strings pointed to by argv
+    // for example, running the a program like this: ./test a1 b2 c3
+    // argc = 4; argv[0] = "./test"; argv[1] = "a1"; argv[2] = "b2"; argv[3] = "c3";
     
+    @autoreleasepool
+    {
         kern_return_t kr = KERN_FAILURE;
         io_service_t serviceObject;
-    // IOService The base class for most I/O Kit families, devices, and drivers.
-    // Look up a registered IOService object whose class is AppleLMUController
+        // IOService The base class for most I/O Kit families, devices, and drivers.
+        // Look up a registered IOService object whose class is AppleLMUController
         
         serviceObject = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("AppleLMUController"));
-    
-        if (serviceObject) {
+        // AppleLMUController is the definition of ambient light sensor
+        
+        if (serviceObject)
+        {
             NSLog(@"Got device AppleLMUController");
             kr = IOServiceOpen(serviceObject, mach_task_self(), 0, &dataPort);
-            }
+        }
+        
         IOObjectRelease(serviceObject);
     
-        if (kr == KERN_SUCCESS) {
+        if (kr == KERN_SUCCESS)
+        {
             NSLog(@"IOServiceOpen succeeded");
-        
-            while (1) {
             
-            //Get the ALS reading
+            while (1)
+            {
+            
+                //Get the ALS reading
                 uint32_t scalarOutputCount = 2;
                 uint64_t values[scalarOutputCount];
-            
+                //kern_return_t IOConnectCallMethod
+                //(
+                //  mach_port_t connection,
+                //  uint32_t selector,
+                //  const uint64_t *input,
+                //  uint32_t inputCnt,
+                //  const void *inputStruct,
+                //  size_t inputStructCnt,
+                //  uint64_t *output,
+                //  uint32_t *outputCnt,
+                //  void *outputStruct,
+                //  size_t *outputStructCnt
+                //);
                 kr = IOConnectCallMethod(dataPort,
                                          kGetSensorReadingID,
                                          nil,
@@ -93,7 +116,7 @@ int main (int argc, const char * argv[]) {
                 // lower values over time.
                 // Somewhere between 2,500,000 and 3,000,000 the KB light turns off. It's hard to capture it since the light ramps off.
             
-                printf("\n %llu %llu        ", MAX(values[0],values[1]), out_brightness);
+                printf("\n %llu %llu %llu      ", values[0],values[1], out_brightness);
             
                 // if we pass in `now` as an arg, only report 1 value
                 if(argc > 1 && strcmp("now", argv[1]) == 0) {
@@ -102,8 +125,9 @@ int main (int argc, const char * argv[]) {
             
                 sleep(1); //lame way to slow down the output
             
-                }
+                
             }
         }
+    }
     return 0;
 }
