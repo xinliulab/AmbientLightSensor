@@ -29,6 +29,33 @@ enum
     kSetLEDFadeID         = 3,  // setLEDFade(int, int, int, int *)
 };
 
+void creatFile (void)
+{
+    
+    // Build the path, and create if needed.
+    NSString* filePath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString* fileName = @"myTextFile.txt";
+    NSString* fileAtPath = [filePath stringByAppendingPathComponent:fileName];
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:fileAtPath])
+    {
+        [[NSFileManager defaultManager] createFileAtPath:fileAtPath contents:nil attributes:nil];
+    }
+}
+
+void writeStringToFile (NSString* aString)
+{
+    NSString* filePath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString* fileName = @"myTextFile.txt";
+    NSString* fileAtPath = [filePath stringByAppendingPathComponent:fileName];
+    NSFileHandle *myHandle = [NSFileHandle fileHandleForWritingAtPath:fileAtPath];
+    // The main act...
+    [myHandle seekToEndOfFile];
+    //[[aString dataUsingEncoding:NSUTF8StringEncoding] writeToFile:fileAtPath atomically:NO];
+    [myHandle writeData:[aString dataUsingEncoding:NSUTF8StringEncoding]];
+
+}
+
 int main (int argc, const char * argv[])
 {
     // argc means argument count, i.e. the number of strings pointed to by argv
@@ -56,7 +83,7 @@ int main (int argc, const char * argv[])
         if (kr == KERN_SUCCESS)
         {
             NSLog(@"IOServiceOpen succeeded");
-            
+            creatFile();
             while (1)
             {
             
@@ -117,15 +144,24 @@ int main (int argc, const char * argv[])
                 // Somewhere between 2,500,000 and 3,000,000 the KB light turns off. It's hard to capture it since the light ramps off.
             
                 printf("\n %llu %llu %llu      ", values[0],values[1], out_brightness);
-            
-                // if we pass in `now` as an arg, only report 1 value
-                if(argc > 1 && strcmp("now", argv[1]) == 0) {
-                    break;
-                    }
-            
-                sleep(1); //lame way to slow down the output
-            
                 
+                NSString *strFromInt = [NSString stringWithFormat:@"\n%llu",values[0]];
+                
+                writeStringToFile(strFromInt);
+                
+                // if we pass in `now` as an arg, only report 1 value
+                if(argc > 1 && strcmp("now", argv[1]) == 0)
+                {
+                    break;
+                }
+            
+                sleep(0.1); //lame way to slow down the output
+                
+                // 893520 - DA250
+                // 765900 - BAFCC
+                // 510660 - 7CAC4
+                // 382860 - 5D78C
+                // 255240 - 3E508
             }
         }
     }
