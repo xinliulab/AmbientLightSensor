@@ -18,8 +18,6 @@ def make_frame(t):
 
     x = ( T%widthNumber )*Length + Length/2
     y = ( T//widthNumber )*Length + Length/2
-    
-    # print t, T, x, y
 
     square = gz.square(l=Length, xy=[x,y], fill=(0, 0, 0))
     square.draw(surface)
@@ -27,8 +25,5 @@ def make_frame(t):
     return surface.get_npimage()
 
 clip = mpy.VideoClip(make_frame, duration=Duration)
-clip.write_gif("background.gif",fps=widthNumber*heightNumber, opt="OptimizePlus")
+clip.write_gif("background.gif", fps=widthNumber*heightNumber, opt="OptimizePlus")
 
-# t = 0.0933333333333
-# y = (t * 12 %% 6) 
-# print 3%2
